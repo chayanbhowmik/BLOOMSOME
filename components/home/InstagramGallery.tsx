@@ -14,26 +14,29 @@ const galleryImages = [
 
 export default function InstagramGallery() {
   return (
-    <section className="py-16 lg:py-20">
+    <section className="py-14 lg:py-20">
       {/* Heading */}
-      <div className="text-center mb-10 px-[5vw]">
-        <p className="flex items-center justify-center gap-2 text-muted text-[11px] uppercase tracking-[0.12em] mb-5">
-          <InstagramIcon size={14} /> Follow along
-        </p>
-        <h2 className="text-[clamp(28px,3.5vw,45px)] font-medium leading-[0.95] tracking-[-0.04em]">
+      <div className="text-center mb-8 px-[5vw]">
+        <div className="inline-flex items-center gap-2 bg-pink/30 text-ink text-[10px] font-medium uppercase tracking-[0.08em] px-3 py-1.5 rounded-full mb-4">
+          <InstagramIcon size={12} /> Follow along
+        </div>
+        <h2 className="text-[clamp(24px,3.5vw,36px)] font-semibold leading-[1.15] tracking-[-0.02em]">
           @bloomsome
         </h2>
+        <p className="text-muted text-[13px] mt-2">
+          Tag us in your BLOOMSOME moments ✿
+        </p>
       </div>
 
-      {/* Gallery */}
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-1">
+      {/* Gallery Grid */}
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-1.5 px-1.5">
         {galleryImages.map((img, index) => (
           <motion.a
             key={index}
             href="https://instagram.com/bloomsome"
             target="_blank"
             rel="noopener noreferrer"
-            className="relative aspect-square overflow-hidden group"
+            className="relative aspect-square overflow-hidden rounded-xl group"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -45,7 +48,7 @@ export default function InstagramGallery() {
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/30 transition-colors flex items-center justify-center">
+            <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/30 transition-colors flex items-center justify-center rounded-xl">
               <InstagramIcon
                 size={24}
                 className="text-ivory opacity-0 group-hover:opacity-100 transition-opacity"

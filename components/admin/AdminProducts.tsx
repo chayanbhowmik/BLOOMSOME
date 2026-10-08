@@ -48,9 +48,10 @@ const initialFormState: Partial<Product> = {
 };
 
 export default function AdminProducts() {
-  const { products, addProduct, updateProduct, deleteProduct } = useAdminStore();
+  const { products, addProduct, updateProduct, deleteProduct, seedInitialCatalog } = useAdminStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [isSeeding, setIsSeeding] = useState(false);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -157,6 +158,20 @@ export default function AdminProducts() {
     setIsModalOpen(false);
   };
 
+  const handleSeedCatalog = async () => {
+    if (window.confirm("Do you want to seed the default curated floral & gift catalog into Firebase Firestore?")) {
+      setIsSeeding(true);
+      try {
+        await seedInitialCatalog();
+        alert("Curated catalog successfully loaded into Firestore!");
+      } catch (err) {
+        alert("Failed to seed catalog. Check Firebase connection.");
+      } finally {
+        setIsSeeding(false);
+      }
+    }
+  };
+
   return (
     <div className="space-y-7 animate-in fade-in duration-300">
       
@@ -171,13 +186,26 @@ export default function AdminProducts() {
             Add handmade stem designs, manage stock levels, set sale discounts, and adjust tags.
           </p>
         </div>
-        <div className="flex items-center gap-3 self-start sm:self-auto"><span className="hidden sm:inline-flex items-center gap-2 text-[11px] font-mono text-muted bg-paper border border-line px-3 py-2.5 rounded-xl"><span className="font-semibold text-ink">{products.length}</span> live SKUs</span><button
-          onClick={handleOpenAdd}
-          className="inline-flex items-center gap-2 bg-ink text-cream px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider hover:bg-ink/90 transition-colors shadow-sm"
-        >
-          <Plus size={15} />
-          Add New Product
-        </button></div>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <span className="hidden sm:inline-flex items-center gap-2 text-[11px] font-mono text-muted bg-paper border border-line px-3 py-2.5 rounded-xl">
+            <span className="font-semibold text-ink">{products.length}</span> live SKUs
+          </span>
+          <button
+            onClick={handleSeedCatalog}
+            disabled={isSeeding}
+            className="inline-flex items-center gap-1.5 bg-sage/40 border border-sage-deep text-ink px-4 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider hover:bg-sage/70 transition-colors"
+          >
+            <Sparkles size={14} className="text-sage-deep" />
+            {isSeeding ? "Seeding..." : "Seed Catalog"}
+          </button>
+          <button
+            onClick={handleOpenAdd}
+            className="inline-flex items-center gap-2 bg-ink text-cream px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider hover:bg-ink/90 transition-colors shadow-sm"
+          >
+            <Plus size={15} />
+            Add New Product
+          </button>
+        </div>
       </div>
 
       {/* Filter & Search Bar */}

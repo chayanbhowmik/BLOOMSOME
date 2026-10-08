@@ -73,12 +73,50 @@ export function useAdminStore() {
   const updateHomepage = (updates: Partial<AdminHomepageConfig>) => writeDocument("homepage", "config", { ...homepageState.value, ...updates });
   const updateCMS = (updates: Partial<AdminCMS>) => writeDocument("content", "config", { ...cmsState.value, ...updates });
   const totalSales = orderState.items.reduce((sum, order) => sum + (order.total || 0), 0);
-  const lowStockProducts = productState.items.filter((product) => (product.stockQuantity ?? 0) <= 5);
+  const seedInitialCatalog = async () => {
+    if (!db) return;
+    const { defaultProducts, defaultReviews } = await import("./products");
+    for (const prod of defaultProducts) {
+      await writeDocument("products", prod.id, prod);
+    }
+    for (const rev of defaultReviews) {
+      await writeDocument("reviews", rev.id, rev);
+    }
+  };
+
   return {
-    products: productState.items, orders: orderState.items, customers: customerState.items, coupons: couponState.items, reviews: reviewState.items, homepage: homepageState.value, cms: cmsState.value,
+    products: productState.items.length > 0 ? productState.items : [],
+    orders: orderState.items,
+    customers: customerState.items,
+    coupons: couponState.items,
+    reviews: reviewState.items,
+    homepage: homepageState.value,
+    cms: cmsState.value,
     error: [productState.error, orderState.error, customerState.error, couponState.error, reviewState.error, homepageState.error, cmsState.error].find(Boolean) || "",
-    stats: { totalSales, totalOrdersCount: orderState.items.length, pendingOrdersCount: orderState.items.filter((order) => ["pending", "processing", "confirmed"].includes(order.status)).length, averageOrderValue: orderState.items.length ? Math.round(totalSales / orderState.items.length) : 0, totalCustomersCount: customerState.items.length, lowStockCount: lowStockProducts.length, lowStockProducts },
-    addProduct, updateProduct, deleteProduct, updateOrderStatus, updateOrderTracking, issueRefund, updateCustomer, updateReviewStatus, deleteReview, addCoupon, updateCoupon, deleteCoupon, updateHomepage, updateCMS,
+    stats: {
+      totalSales,
+      totalOrdersCount: orderState.items.length,
+      pendingOrdersCount: orderState.items.filter((order) => ["pending", "processing", "confirmed"].includes(order.status)).length,
+      averageOrderValue: orderState.items.length ? Math.round(totalSales / orderState.items.length) : 0,
+      totalCustomersCount: customerState.items.length,
+      lowStockCount: lowStockProducts.length,
+      lowStockProducts,
+    },
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    updateOrderStatus,
+    updateOrderTracking,
+    issueRefund,
+    updateCustomer,
+    updateReviewStatus,
+    deleteReview,
+    addCoupon,
+    updateCoupon,
+    deleteCoupon,
+    updateHomepage,
+    updateCMS,
+    seedInitialCatalog,
     resetToDefaults: () => undefined,
   };
 }

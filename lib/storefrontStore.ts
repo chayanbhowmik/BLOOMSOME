@@ -31,14 +31,21 @@ function writeStored<T>(key: string, value: T) {
   window.dispatchEvent(new Event(STORE_EVENT));
 }
 
+import { defaultProducts } from "./products";
+
 export function useStorefrontProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(defaultProducts);
 
   useEffect(() => {
     if (!db) return;
-    return onSnapshot(collection(db, "products"), (snapshot) => {
-      setProducts(snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() } as Product)));
-    }, () => setProducts([]));
+    return onSnapshot(
+      collection(db, "products"),
+      (snapshot) => {
+        const live = snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() } as Product));
+        setProducts(live.length > 0 ? live : defaultProducts);
+      },
+      () => setProducts(defaultProducts)
+    );
   }, []);
 
   return products;

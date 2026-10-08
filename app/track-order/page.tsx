@@ -107,9 +107,49 @@ export default function TrackOrderPage() {
   const [searched, setSearched] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  const handleTrack = (e: React.FormEvent) => {
+  const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanId = orderQuery.trim().toUpperCase();
+    
+    // Check Firestore first
+    try {
+      const { db } = await import("@/lib/firebase");
+      if (db) {
+        const { getDoc, doc } = await import("firebase/firestore");
+        const docSnap = await getDoc(doc(db, "orders", cleanId));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const stepMap: Record<string, number> = {
+            pending: 0,
+            confirmed: 0,
+            processing: 1,
+            shipped: 3,
+            delivered: 4,
+          };
+          setActiveOrder({
+            orderNumber: data.orderNumber || cleanId,
+            customerName: data.customerName || "Customer",
+            createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString() : "Recent",
+            status: data.status || "Being Handcrafted",
+            currentStepIndex: stepMap[data.status] ?? 1,
+            carrier: data.carrier || "BlueDart Express",
+            trackingNumber: data.trackingNumber || "BLM-TRACK",
+            estimatedDelivery: "3 - 5 Business Days",
+            destination: data.shippingAddress || "Delivery Address",
+            items: data.items || [],
+            subtotal: data.subtotal || data.total || 0,
+            shipping: data.shippingFee || 0,
+            total: data.total || 0,
+          });
+          setHasError(false);
+          setSearched(true);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn("Firestore order lookup fallback:", err);
+    }
+
     if (sampleOrders[cleanId]) {
       setActiveOrder(sampleOrders[cleanId]);
       setHasError(false);

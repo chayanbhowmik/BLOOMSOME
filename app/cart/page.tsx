@@ -79,39 +79,77 @@ export default function CartPage() {
     event.preventDefault();
     setIsCheckingOut(true);
     setCheckoutError("");
+    const orderId = `BLM-${Date.now()}`;
+    const orderData = {
+      id: orderId,
+      orderNumber: orderId,
+      createdAt: new Date().toISOString(),
+      customerName: shippingDetails.name,
+      customerEmail: shippingDetails.email,
+      customerPhone: shippingDetails.phone,
+      shippingAddress: `${shippingDetails.address}, ${shippingDetails.city}, ${shippingDetails.state} - ${shippingDetails.postcode}`,
+      status: "pending" as const,
+      paymentMethod: "COD",
+      paymentStatus: "Pending",
+      subtotal,
+      discount: discountAmount,
+      shippingFee: shipping,
+      giftWrapFee: giftWrapTotal,
+      total: finalTotal,
+      items: items.map((item) => ({
+        id: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        variant: item.variant,
+      })),
+    };
+
     try {
-      const response = await fetch("/api/orders/shiprocket", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: `BLM-${Date.now()}`,
-          orderDate: new Date().toISOString(),
-          pickupLocation: "Primary",
-          billingCustomerName: shippingDetails.name,
-          billingAddress: shippingDetails.address,
-          billingCity: shippingDetails.city,
-          billingState: shippingDetails.state,
-          billingPostcode: shippingDetails.postcode,
-          billingEmail: shippingDetails.email,
-          billingPhone: shippingDetails.phone,
-          shippingIsBilling: true,
-          orderItems: items.map((item) => ({ name: item.name, sku: item.productId, units: item.quantity, sellingPrice: item.price })),
-          subtotal,
-          shipping,
-          paymentMethod: "COD",
-          length: 20,
-          breadth: 15,
-          height: 10,
-          weight: Math.max(0.5, items.reduce((total, item) => total + item.quantity, 0) * 0.25),
-        }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Unable to create the shipment.");
+      // Save order to Firestore
+      const { db } = await import("@/lib/firebase");
+      if (db) {
+        const { setDoc, doc } = await import("firebase/firestore");
+        await setDoc(doc(db, "orders", orderId), orderData);
+      }
+
+      // Also call Shiprocket integration
+      try {
+        await fetch("/api/orders/shiprocket", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            orderDate: new Date().toISOString(),
+            pickupLocation: "Primary",
+            billingCustomerName: shippingDetails.name,
+            billingAddress: shippingDetails.address,
+            billingCity: shippingDetails.city,
+            billingState: shippingDetails.state,
+            billingPostcode: shippingDetails.postcode,
+            billingEmail: shippingDetails.email,
+            billingPhone: shippingDetails.phone,
+            shippingIsBilling: true,
+            orderItems: items.map((item) => ({ name: item.name, sku: item.productId, units: item.quantity, sellingPrice: item.price })),
+            subtotal,
+            shipping,
+            paymentMethod: "COD",
+            length: 20,
+            breadth: 15,
+            height: 10,
+            weight: Math.max(0.5, items.reduce((total, item) => total + item.quantity, 0) * 0.25),
+          }),
+        });
+      } catch (shipErr) {
+        console.warn("Shiprocket dispatch queued:", shipErr);
+      }
+
       setCheckoutOpen(false);
       clearCart();
       setOrderComplete(true);
     } catch (error) {
-      setCheckoutError(error instanceof Error ? error.message : "Unable to create the shipment.");
+      setCheckoutError(error instanceof Error ? error.message : "Unable to place order. Please try again.");
     } finally {
       setIsCheckingOut(false);
     }

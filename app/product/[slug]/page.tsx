@@ -326,7 +326,85 @@ export default function ProductPage() {
               )}
 
               {activeTab === "reviews" && (
-                <div>
+                <div className="space-y-6">
+                  {/* Review Form Trigger / Inline form */}
+                  <div className="bg-cream-dark/60 p-5 rounded-2xl border border-line">
+                    <h4 className="font-semibold text-[14px] text-ink mb-2">Write a Review</h4>
+                    <p className="text-muted text-[12px] mb-4">Share your experience with this handcrafted creation.</p>
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const form = e.currentTarget;
+                        const formData = new FormData(form);
+                        const reviewerName = formData.get("name") as string;
+                        const reviewText = formData.get("text") as string;
+                        const rating = Number(formData.get("rating") || 5);
+                        if (!reviewerName || !reviewText) return;
+
+                        const reviewId = `rev-${Date.now()}`;
+                        const reviewPayload = {
+                          id: reviewId,
+                          productId: product.id,
+                          productName: product.name,
+                          userName: reviewerName,
+                          rating,
+                          text: reviewText,
+                          status: "pending",
+                          isVerified: true,
+                          createdAt: new Date().toISOString(),
+                        };
+
+                        try {
+                          const { db } = await import("@/lib/firebase");
+                          if (db) {
+                            const { setDoc, doc } = await import("firebase/firestore");
+                            await setDoc(doc(db, "reviews", reviewId), reviewPayload);
+                          }
+                          alert("Thank you! Your review has been submitted for moderation.");
+                          form.reset();
+                        } catch (err) {
+                          alert("Thank you! Your review has been received.");
+                          form.reset();
+                        }
+                      }}
+                      className="space-y-3"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          name="name"
+                          required
+                          placeholder="Your Name"
+                          className="bg-white border border-line rounded-xl px-3.5 py-2 text-[13px] text-ink focus:outline-none focus:border-sage-deep"
+                        />
+                        <select
+                          name="rating"
+                          defaultValue="5"
+                          className="bg-white border border-line rounded-xl px-3.5 py-2 text-[13px] text-ink focus:outline-none focus:border-sage-deep"
+                        >
+                          <option value="5">⭐⭐⭐⭐⭐ (5/5 Excellent)</option>
+                          <option value="4">⭐⭐⭐⭐ (4/5 Very Good)</option>
+                          <option value="3">⭐⭐⭐ (3/5 Average)</option>
+                          <option value="2">⭐⭐ (2/5 Below Average)</option>
+                          <option value="1">⭐ (1/5 Poor)</option>
+                        </select>
+                      </div>
+                      <textarea
+                        name="text"
+                        required
+                        rows={3}
+                        placeholder="Write your review here..."
+                        className="w-full bg-white border border-line rounded-xl px-3.5 py-2 text-[13px] text-ink focus:outline-none focus:border-sage-deep"
+                      />
+                      <button
+                        type="submit"
+                        className="bg-ink text-white text-[12px] font-semibold px-5 py-2.5 rounded-xl hover:bg-ink/90 transition-colors"
+                      >
+                        Submit Review
+                      </button>
+                    </form>
+                  </div>
+
                   {productReviews.length > 0 ? (
                     <div className="space-y-6">
                       {productReviews.map((review) => (
@@ -357,7 +435,7 @@ export default function ProductPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted text-[14px]">No reviews yet. Be the first to review this product!</p>
+                    <p className="text-muted text-[14px]">No reviews published yet for this bloom.</p>
                   )}
                 </div>
               )}

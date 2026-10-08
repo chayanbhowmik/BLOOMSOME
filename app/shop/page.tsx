@@ -30,6 +30,10 @@ function ShopContent() {
   const products = useStorefrontProducts();
   const initialCategory = searchParams.get("category") || "All";
   const initialOccasion = searchParams.get("occasion") || "";
+  const initialTag = searchParams.get("tag") || "";
+  const initialFlower = searchParams.get("flower") || "";
+  const initialFeeling = searchParams.get("feeling") || "";
+  const initialRecipient = searchParams.get("recipient") || "";
 
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [sort, setSort] = useState("featured");
@@ -43,12 +47,32 @@ function ShopContent() {
 
     // Category filter
     if (activeCategory !== "All") {
-      result = result.filter((p) => p.category === activeCategory);
+      result = result.filter((p) => p.category?.toLowerCase() === activeCategory.toLowerCase());
     }
 
     // Occasion filter
     if (occasion) {
-      result = result.filter((p) => p.occasions?.includes(occasion));
+      result = result.filter((p) => p.occasions?.some((o) => o.toLowerCase().includes(occasion.toLowerCase())));
+    }
+
+    // Tag filter
+    if (initialTag) {
+      result = result.filter((p) => p.tags?.some((t) => t.toLowerCase().includes(initialTag.toLowerCase())) || p.tag?.toLowerCase().includes(initialTag.toLowerCase()));
+    }
+
+    // Flower filter
+    if (initialFlower) {
+      result = result.filter((p) => p.name?.toLowerCase().includes(initialFlower.toLowerCase()) || p.tags?.some((t) => t.toLowerCase().includes(initialFlower.toLowerCase())));
+    }
+
+    // Feeling filter
+    if (initialFeeling) {
+      result = result.filter((p) => p.occasions?.some((o) => o.toLowerCase().includes(initialFeeling.toLowerCase())) || p.tags?.some((t) => t.toLowerCase().includes(initialFeeling.toLowerCase())));
+    }
+
+    // Recipient filter
+    if (initialRecipient) {
+      result = result.filter((p) => p.occasions?.some((o) => o.toLowerCase().includes(initialRecipient.toLowerCase())) || p.tags?.some((t) => t.toLowerCase().includes(initialRecipient.toLowerCase())));
     }
 
     // Price filter
