@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { products, collections } from "@/lib/products";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://bloomsome.store";
@@ -26,19 +25,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "" ? 1.0 : 0.8,
   }));
 
-  const productRoutes = products.map((product) => ({
-    url: `${baseUrl}/product/${product.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "daily" as const,
-    priority: 0.9,
-  }));
-
-  const collectionRoutes = collections.map((col) => ({
-    url: `${baseUrl}/collections/${col.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.8,
-  }));
-
-  return [...staticRoutes, ...productRoutes, ...collectionRoutes];
+  return staticRoutes;
 }

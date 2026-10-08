@@ -36,7 +36,7 @@ const AdminCMS = dynamic(() => import("./AdminCMS"));
 
 export default function AdminDashboard() {
   const { user, logout, changePassword, login, resetPassword, isAuthenticated, isLoading, authError } = useAdminAuth();
-  const { stats, reviews, resetToDefaults } = useAdminStore();
+  const { stats, reviews } = useAdminStore();
   const [activeTab, setActiveTab] = useState("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -338,27 +338,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-paper border border-line rounded-2xl p-6 sm:p-8 shadow-xs space-y-3">
-                  <div className="flex items-center gap-2 text-amber-800">
-                    <RotateCcw size={16} />
-                    <h3 className="font-display text-lg font-medium text-ink">Reset Demo Store Data</h3>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Reset all products, orders, customers, reviews, and CMS texts back to the original studio initial state.
-                  </p>
-                  <button
-                    onClick={() => {
-                      if (window.confirm("Are you sure you want to reset all data to default mock values?")) {
-                        resetToDefaults();
-                        alert("Database cache reset to initial studio values!");
-                      }
-                    }}
-                    className="inline-flex items-center gap-2 bg-cream border border-line text-xs font-mono uppercase px-4 py-2.5 rounded-xl hover:border-ink transition-colors"
-                  >
-                    <RotateCcw size={13} />
-                    Reset Data to Studio Defaults
-                  </button>
-                </div>
               </div>
 
             </div>

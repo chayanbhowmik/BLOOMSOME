@@ -4,14 +4,15 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronDown, MessageCircle, Mail, HelpCircle } from "lucide-react";
-import { faqs } from "@/lib/products";
+import { usePublicFaqs } from "@/lib/publicContent";
 
 const categories = ["All", "Product", "Customization", "Orders", "Shipping", "Payment", "Returns"];
 
 export default function FAQPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [openFaqId, setOpenFaqId] = useState<string | null>(faqs[0]?.id || null);
+  const faqs = usePublicFaqs();
+  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
 
   const filteredFaqs = useMemo(() => {
     return faqs.filter((faq) => {

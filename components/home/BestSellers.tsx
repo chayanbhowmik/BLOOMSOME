@@ -1,10 +1,10 @@
 "use client";
 
-import { getFeaturedProducts } from "@/lib/products";
 import ProductCard from "@/components/product/ProductCard";
+import { useStorefrontProducts } from "@/lib/storefrontStore";
 
 export default function BestSellers() {
-  const featured = getFeaturedProducts();
+  const featured = useStorefrontProducts().filter((product) => product.isFeatured || product.isBestSeller).slice(0, 4);
 
   return (
     <section className="bg-cream-dark px-[5vw] py-20 lg:py-28">
@@ -25,6 +25,7 @@ export default function BestSellers() {
           <ProductCard key={product.id} product={product} index={index} />
         ))}
       </div>
+      {featured.length === 0 && <p className="border border-dashed border-line p-10 text-center text-sm text-muted">Products will appear here once published from the admin catalog.</p>}
     </section>
   );
 }

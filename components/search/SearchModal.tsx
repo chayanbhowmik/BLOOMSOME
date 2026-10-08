@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Search, X, TrendingUp, Clock, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { searchProducts } from "@/lib/products";
 import { formatPrice } from "@/lib/utils";
+import { useStorefrontProducts } from "@/lib/storefrontStore";
 
 const popularSearches = ["sunflower", "rose", "bouquet", "keychain", "gift box", "lavender"];
 
@@ -17,6 +17,7 @@ interface SearchModalProps {
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const products = useStorefrontProducts();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
-  const results = query.length >= 2 ? searchProducts(query) : [];
+  const results = query.length >= 2 ? products.filter((product) => `${product.name} ${product.category} ${product.tags.join(" ")}`.toLowerCase().includes(query.toLowerCase())) : [];
 
   const handleSearch = (term: string) => {
     setQuery(term);

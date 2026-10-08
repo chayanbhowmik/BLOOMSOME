@@ -18,8 +18,8 @@ import {
   Share2,
   Check,
 } from "lucide-react";
-import { reviews } from "@/lib/products";
 import { useCommerce, useStorefrontProducts } from "@/lib/storefrontStore";
+import { usePublicReviews } from "@/lib/publicContent";
 import { formatPrice, formatDiscount } from "@/lib/utils";
 import ProductCard from "@/components/product/ProductCard";
 
@@ -29,6 +29,7 @@ export default function ProductPage() {
   const products = useStorefrontProducts();
   const product = products.find((item) => item.slug === slug);
   const { addToCart, toggleWishlist, isWishlisted } = useCommerce();
+  const reviews = usePublicReviews();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);

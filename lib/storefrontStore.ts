@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { products as initialProducts } from "./products";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "./firebase";
 import type { Product } from "./types";
 
 export type CartLine = {
@@ -31,17 +32,13 @@ function writeStored<T>(key: string, value: T) {
 }
 
 export function useStorefrontProducts() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    const sync = () => setProducts(readStored(PRODUCTS_KEY, initialProducts));
-    sync();
-    window.addEventListener(STORE_EVENT, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(STORE_EVENT, sync);
-      window.removeEventListener("storage", sync);
-    };
+    if (!db) return;
+    return onSnapshot(collection(db, "products"), (snapshot) => {
+      setProducts(snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() } as Product)));
+    }, () => setProducts([]));
   }, []);
 
   return products;

@@ -2,10 +2,10 @@
 
 import { Star, Quote } from "lucide-react";
 import { motion } from "framer-motion";
-import { reviews } from "@/lib/products";
+import { usePublicReviews } from "@/lib/publicContent";
 
 export default function CustomerReviews() {
-  const displayReviews = reviews.slice(0, 3);
+  const displayReviews = usePublicReviews().slice(0, 3);
 
   return (
     <section className="px-[5vw] py-20 lg:py-28">
@@ -64,6 +64,7 @@ export default function CustomerReviews() {
           </motion.div>
         ))}
       </div>
+      {displayReviews.length === 0 && <p className="text-center text-sm text-muted">Customer reviews will appear here after approved purchases.</p>}
     </section>
   );
 }
