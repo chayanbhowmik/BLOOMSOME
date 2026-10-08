@@ -6,6 +6,7 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   updatePassword,
   type User,
@@ -22,6 +23,8 @@ type AdminProfile = {
 function getAdminError(error: unknown): string {
   const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
   if (code.includes("invalid-credential") || code.includes("wrong-password")) return "Invalid email or password.";
+  if (code.includes("permission-denied")) return "Firestore denied access. Deploy firestore.rules, then try again.";
+  if (code.includes("failed-precondition")) return "Firestore is not ready for this project. Check that the database exists.";
   if (code.includes("too-many-requests")) return "Too many attempts. Please wait and try again.";
   if (code.includes("network-request-failed")) return "Network error. Check your connection and try again.";
   return "Unable to complete the admin sign-in request.";
@@ -66,15 +69,15 @@ export function useAdminAuth() {
       try {
         const adminUser = await loadAdminUser(firebaseUser);
         if (!adminUser) {
-          setAuthError("This account is not authorized to access the admin dashboard.");
+          setAuthError(`No valid admin profile was found for this account. Create a Firestore document at admins/${firebaseUser.uid} with role set to super_admin.`);
           if (auth) await signOut(auth);
           setUser(null);
         } else {
           setAuthError(null);
           setUser(adminUser);
         }
-      } catch {
-        setAuthError("Unable to verify admin permissions. Please try again.");
+      } catch (error) {
+        setAuthError(getAdminError(error));
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -105,6 +108,18 @@ export function useAdminAuth() {
     setUser(null);
   };
 
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    if (!auth || !firebaseConfigured) return { success: false, error: "Firebase is not configured yet." };
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      return { success: true };
+    } catch (error) {
+      const message = getAdminError(error);
+      setAuthError(message);
+      return { success: false, error: message };
+    }
+  };
+
   const changePassword = async (currentPass: string, newPass: string): Promise<{ success: boolean; error?: string }> => {
     if (newPass.length < 8) return { success: false, error: "New password must be at least 8 characters long." };
     if (!auth || !auth.currentUser || !auth.currentUser.email) return { success: false, error: "Your admin session has expired. Please sign in again." };
@@ -126,6 +141,7 @@ export function useAdminAuth() {
     authError,
     login,
     logout,
+    resetPassword,
     changePassword,
   };
 }

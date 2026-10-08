@@ -1,0 +1,24 @@
+import { S3Client } from "@aws-sdk/client-s3";
+
+const accountId = process.env.R2_ACCOUNT_ID;
+
+export const r2Configured = Boolean(
+  accountId &&
+  process.env.R2_BUCKET_NAME &&
+  process.env.R2_ACCESS_KEY_ID &&
+  process.env.R2_SECRET_ACCESS_KEY
+);
+
+export const r2Bucket = process.env.R2_BUCKET_NAME || "bloomsomestore";
+export const r2PublicBaseUrl = process.env.R2_PUBLIC_BASE_URL?.replace(/\/$/, "");
+
+export const r2 = r2Configured
+  ? new S3Client({
+      region: "auto",
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID as string,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY as string,
+      },
+    })
+  : null;

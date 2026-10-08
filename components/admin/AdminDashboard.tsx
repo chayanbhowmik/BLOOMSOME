@@ -34,7 +34,7 @@ import AdminHomepage from "./AdminHomepage";
 import AdminCMS from "./AdminCMS";
 
 export default function AdminDashboard() {
-  const { user, logout, changePassword, login, isAuthenticated, isLoading, authError } = useAdminAuth();
+  const { user, logout, changePassword, login, resetPassword, isAuthenticated, isLoading, authError } = useAdminAuth();
   const { stats, reviews, resetToDefaults } = useAdminStore();
   const [activeTab, setActiveTab] = useState("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
     return <div className="min-h-screen bg-cream flex items-center justify-center text-xs font-mono uppercase tracking-widest text-muted">Verifying admin access...</div>;
   }
 
-  if (!isAuthenticated || !user) return <AdminLogin onLogin={login} authError={authError} />;
+  if (!isAuthenticated || !user) return <AdminLogin onLogin={login} onResetPassword={resetPassword} authError={authError} />;
 
   return (
     <div className="min-h-screen bg-cream text-ink flex flex-col lg:flex-row">
@@ -366,11 +366,14 @@ export default function AdminDashboard() {
 
 function AdminLogin({
   onLogin,
+  onResetPassword,
   authError,
 }: {
   onLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  onResetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   authError: string | null;
 }) {
+  const [mode, setMode] = useState<"signin" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(authError);
@@ -385,6 +388,15 @@ function AdminLogin({
     setIsSubmitting(false);
   };
 
+  const handleReset = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    const result = await onResetPassword(email);
+    setError(result.success ? "Check your inbox for the admin password reset link." : result.error || "Unable to send the reset email.");
+    setIsSubmitting(false);
+  };
+
   return (
     <main className="min-h-screen bg-cream flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-paper border border-line rounded-3xl p-8 sm:p-10 shadow-xl">
@@ -395,14 +407,14 @@ function AdminLogin({
           </div>
           <ShieldCheck className="text-ink" size={28} strokeWidth={1.5} />
         </div>
-        <p className="text-sm text-muted leading-relaxed mb-8">Sign in with an authorized Firebase administrator account to manage the store.</p>
+        <p className="text-sm text-muted leading-relaxed mb-8">{mode === "forgot" ? "Enter your admin email and we’ll send a secure reset link." : "Sign in with an authorized Firebase administrator account to manage the store."}</p>
         {(error || authError) && <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-4 py-3 text-xs mb-5">{error || authError}</div>}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={mode === "forgot" ? handleReset : handleSubmit} className="space-y-5">
           <label className="block text-xs font-mono uppercase tracking-wider text-muted">Admin email<input type="email" required autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full bg-cream border border-line rounded-xl px-4 py-3 text-sm text-ink focus:outline-none focus:border-ink" /></label>
-          <label className="block text-xs font-mono uppercase tracking-wider text-muted">Password<input type="password" required autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full bg-cream border border-line rounded-xl px-4 py-3 text-sm text-ink focus:outline-none focus:border-ink" /></label>
-          <button type="submit" disabled={isSubmitting} className="w-full bg-ink text-cream py-3.5 rounded-xl text-xs font-mono uppercase tracking-wider hover:bg-ink/90 disabled:opacity-60">{isSubmitting ? "Authenticating..." : "Enter dashboard"}</button>
+          {mode === "signin" && <label className="block text-xs font-mono uppercase tracking-wider text-muted">Password<input type="password" required autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full bg-cream border border-line rounded-xl px-4 py-3 text-sm text-ink focus:outline-none focus:border-ink" /></label>}
+          <button type="submit" disabled={isSubmitting} className="w-full bg-ink text-cream py-3.5 rounded-xl text-xs font-mono uppercase tracking-wider hover:bg-ink/90 disabled:opacity-60">{isSubmitting ? "Please wait..." : mode === "forgot" ? "Email reset link" : "Enter dashboard"}</button>
         </form>
-        <p className="text-[11px] text-muted mt-7 text-center">Access is controlled by Firebase Authentication and the admins collection.</p>
+        <div className="text-center mt-7"><button type="button" onClick={() => { setMode(mode === "signin" ? "forgot" : "signin"); setError(null); }} className="text-xs text-ink underline underline-offset-4">{mode === "signin" ? "Forgot admin password?" : "Back to admin sign in"}</button><p className="text-[11px] text-muted mt-4">Access is controlled by Firebase Authentication and the admins collection.</p></div>
       </div>
     </main>
   );
