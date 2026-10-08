@@ -5,6 +5,7 @@ import { Heart, Star, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Product } from "@/lib/types";
 import { formatPrice, formatDiscount } from "@/lib/utils";
+import { useCommerce } from "@/lib/storefrontStore";
 
 const toneColors: Record<string, string> = {
   yellow: "bg-[#e8db8b]",
@@ -21,6 +22,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
+  const { addToCart, toggleWishlist, isWishlisted } = useCommerce();
   const discount = product.oldPrice
     ? formatDiscount(product.price, product.oldPrice)
     : null;
@@ -34,18 +36,12 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
       {/* Image */}
-      <Link href={`/product/${product.slug}`} className="block">
-        <div
+      <div
           className={`relative h-[240px] sm:h-[300px] lg:h-[355px] overflow-hidden ${
             toneColors[product.tone] || "bg-cream-dark"
           }`}
         >
-          <img
-            src={product.images[0]}
-            alt={product.alt}
-            className="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 ease-[cubic-bezier(0.2,0.7,0.2,1)] group-hover:scale-[1.045]"
-            loading="lazy"
-          />
+          <Link href={`/product/${product.slug}`} className="block h-full"><img src={product.images[0]} alt={product.alt} className="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 ease-[cubic-bezier(0.2,0.7,0.2,1)] group-hover:scale-[1.045]" loading="lazy" /></Link>
 
           {/* Tag */}
           {product.tag && (
@@ -64,20 +60,21 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           {/* Wishlist */}
           <button
             className="absolute top-3 right-3 bg-ivory rounded-full p-2 hover:scale-110 transition-transform"
-            aria-label={`Add ${product.name} to wishlist`}
+            aria-label={`${isWishlisted(product.id) ? "Remove" : "Add"} ${product.name} ${isWishlisted(product.id) ? "from" : "to"} wishlist`}
+            onClick={() => toggleWishlist(product.id)}
           >
-            <Heart size={16} strokeWidth={1.6} />
+            <Heart size={16} strokeWidth={1.6} fill={isWishlisted(product.id) ? "currentColor" : "none"} />
           </button>
 
           {/* Quick Add */}
           <button
             className="absolute bottom-0 inset-x-0 bg-ink text-ivory flex items-center justify-between px-4 py-3.5 text-[11px] opacity-0 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-250 ease-out lg:flex hidden"
+            onClick={() => addToCart(product.id)}
           >
             Add to bag
             <ArrowRight size={15} />
           </button>
         </div>
-      </Link>
 
       {/* Info */}
       <div className="flex items-start justify-between pt-4">

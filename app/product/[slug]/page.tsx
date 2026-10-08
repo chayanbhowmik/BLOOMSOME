@@ -18,14 +18,17 @@ import {
   Share2,
   Check,
 } from "lucide-react";
-import { getProductBySlug, products, reviews } from "@/lib/products";
+import { reviews } from "@/lib/products";
+import { useCommerce, useStorefrontProducts } from "@/lib/storefrontStore";
 import { formatPrice, formatDiscount } from "@/lib/utils";
 import ProductCard from "@/components/product/ProductCard";
 
 export default function ProductPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const product = getProductBySlug(slug);
+  const products = useStorefrontProducts();
+  const product = products.find((item) => item.slug === slug);
+  const { addToCart, toggleWishlist, isWishlisted } = useCommerce();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -228,19 +231,20 @@ export default function ProductPage() {
 
           {/* Actions */}
           <div className="flex gap-3 mb-6">
-            <button className="flex-1 flex items-center justify-center gap-3 bg-ink text-ivory py-4 text-[12px] tracking-wide hover:bg-ink/90 transition-colors">
+            <button onClick={() => addToCart(product.id, quantity)} className="flex-1 flex items-center justify-center gap-3 bg-ink text-ivory py-4 text-[12px] tracking-wide hover:bg-ink/90 transition-colors">
               <ShoppingBag size={16} />
               Add to bag
             </button>
-            <button className="flex items-center justify-center gap-3 border border-ink py-4 px-5 text-[12px] tracking-wide hover:bg-ink hover:text-ivory transition-colors">
+            <button onClick={() => { addToCart(product.id, quantity); window.location.href = "/cart"; }} className="flex items-center justify-center gap-3 border border-ink py-4 px-5 text-[12px] tracking-wide hover:bg-ink hover:text-ivory transition-colors">
               <Zap size={16} />
               Buy now
             </button>
             <button
               className="w-12 border border-line flex items-center justify-center hover:border-ink transition-colors"
               aria-label="Add to wishlist"
+              onClick={() => toggleWishlist(product.id)}
             >
-              <Heart size={18} strokeWidth={1.5} />
+              <Heart size={18} strokeWidth={1.5} fill={isWishlisted(product.id) ? "currentColor" : "none"} />
             </button>
             <button
               className="w-12 border border-line flex items-center justify-center hover:border-ink transition-colors"

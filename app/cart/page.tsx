@@ -16,54 +16,40 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-
-// Initial sample cart items
-const initialItems = [
-  {
-    id: "cart-1",
-    productId: "sunflower-bouquet",
-    name: "Everlasting Sunflower Bouquet",
-    variant: "Lush Medium (9 stems) / Sunshine Yellow",
-    price: 1299,
-    quantity: 1,
-    image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=400&q=85",
-  },
-  {
-    id: "cart-2",
-    productId: "sunflower-keychain",
-    name: "Sunflower Bag Charm & Keychain",
-    variant: "Mini / Golden Hook",
-    price: 349,
-    quantity: 2,
-    image: "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=400&q=85",
-  },
-];
+import { useCommerce, useStorefrontProducts } from "@/lib/storefrontStore";
 
 export default function CartPage() {
-  const [items, setItems] = useState(initialItems);
+  const products = useStorefrontProducts();
+  const { cart, updateCartQuantity, removeFromCart, clearCart } = useCommerce();
+  const items = cart.flatMap((line) => {
+    const product = products.find((item) => item.id === line.productId);
+    return product ? [{ id: line.productId, productId: product.id, name: product.name, variant: line.customization || product.shortDescription, price: product.price, quantity: line.quantity, image: product.images[0] }] : [];
+  });
   const [couponCode, setCouponCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number } | null>(null);
   const [couponError, setCouponError] = useState("");
   const [addGiftWrap, setAddGiftWrap] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
+  const [shippingDetails, setShippingDetails] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    postcode: "",
+  });
 
   const updateQuantity = (id: string, delta: number) => {
-    setItems((prev) =>
-      prev
-        .map((item) => {
-          if (item.id === id) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean) as typeof initialItems
-    );
+    const item = items.find((cartItem) => cartItem.id === id);
+    if (item) updateCartQuantity(item.productId, item.quantity + delta);
   };
 
   const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    removeFromCart(id);
   };
 
   const applyCoupon = (e: React.FormEvent) => {
@@ -84,6 +70,52 @@ export default function CartPage() {
   const shipping = subtotal >= freeShippingThreshold || items.length === 0 ? 0 : 99;
   const finalTotal = subtotal - discountAmount + giftWrapTotal + shipping;
   const remainingForFreeShip = Math.max(0, freeShippingThreshold - subtotal);
+
+  const updateShippingDetails = (field: keyof typeof shippingDetails, value: string) => {
+    setShippingDetails((details) => ({ ...details, [field]: value }));
+  };
+
+  const submitCheckout = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsCheckingOut(true);
+    setCheckoutError("");
+    try {
+      const response = await fetch("/api/orders/shiprocket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: `BLM-${Date.now()}`,
+          orderDate: new Date().toISOString(),
+          pickupLocation: "Primary",
+          billingCustomerName: shippingDetails.name,
+          billingAddress: shippingDetails.address,
+          billingCity: shippingDetails.city,
+          billingState: shippingDetails.state,
+          billingPostcode: shippingDetails.postcode,
+          billingEmail: shippingDetails.email,
+          billingPhone: shippingDetails.phone,
+          shippingIsBilling: true,
+          orderItems: items.map((item) => ({ name: item.name, sku: item.productId, units: item.quantity, sellingPrice: item.price })),
+          subtotal,
+          shipping,
+          paymentMethod: "COD",
+          length: 20,
+          breadth: 15,
+          height: 10,
+          weight: Math.max(0.5, items.reduce((total, item) => total + item.quantity, 0) * 0.25),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to create the shipment.");
+      setCheckoutOpen(false);
+      clearCart();
+      setOrderComplete(true);
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : "Unable to create the shipment.");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-cream">
@@ -303,9 +335,22 @@ export default function CartPage() {
                 <span className="text-2xl font-bold font-sans text-ink">{formatPrice(finalTotal)}</span>
               </div>
 
+              {checkoutOpen && (
+                <form onSubmit={submitCheckout} className="border-t border-line pt-5 space-y-3">
+                  <p className="text-sm font-semibold text-ink">Delivery details</p>
+                  <input required placeholder="Full name" value={shippingDetails.name} onChange={(e) => updateShippingDetails("name", e.target.value)} className="w-full bg-cream border border-line rounded-xl px-3 py-2.5 text-xs" />
+                  <div className="grid grid-cols-2 gap-2"><input required type="email" placeholder="Email" value={shippingDetails.email} onChange={(e) => updateShippingDetails("email", e.target.value)} className="w-full bg-cream border border-line rounded-xl px-3 py-2.5 text-xs" /><input required type="tel" placeholder="Phone" value={shippingDetails.phone} onChange={(e) => updateShippingDetails("phone", e.target.value)} className="w-full bg-cream border border-line rounded-xl px-3 py-2.5 text-xs" /></div>
+                  <textarea required rows={2} placeholder="Full address" value={shippingDetails.address} onChange={(e) => updateShippingDetails("address", e.target.value)} className="w-full bg-cream border border-line rounded-xl p-3 text-xs resize-none" />
+                  <div className="grid grid-cols-3 gap-2"><input required placeholder="City" value={shippingDetails.city} onChange={(e) => updateShippingDetails("city", e.target.value)} className="w-full bg-cream border border-line rounded-xl px-3 py-2.5 text-xs" /><input required placeholder="State" value={shippingDetails.state} onChange={(e) => updateShippingDetails("state", e.target.value)} className="w-full bg-cream border border-line rounded-xl px-3 py-2.5 text-xs" /><input required inputMode="numeric" pattern="[0-9]{6}" placeholder="PIN" value={shippingDetails.postcode} onChange={(e) => updateShippingDetails("postcode", e.target.value)} className="w-full bg-cream border border-line rounded-xl px-3 py-2.5 text-xs" /></div>
+                  {checkoutError && <p className="text-[11px] text-red-600">{checkoutError}</p>}
+                  <button disabled={isCheckingOut} type="submit" className="w-full bg-ink text-cream py-3 rounded-xl text-xs font-mono uppercase tracking-wider disabled:opacity-60">{isCheckingOut ? "Creating shipment..." : "Confirm COD order"}</button>
+                </form>
+              )}
+
               {/* Checkout Button */}
               <button
-                onClick={() => setOrderComplete(true)}
+                onClick={() => { setCheckoutOpen(true); setCheckoutError(""); }}
+                disabled={checkoutOpen}
                 className="w-full bg-ink text-cream py-4 rounded-xl text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-ink/90 transition-colors shadow-sm"
               >
                 <span>Proceed to Checkout</span>

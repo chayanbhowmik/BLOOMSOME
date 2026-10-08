@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, X, ChevronDown, ArrowUpDown } from "lucide-react";
 import ProductCard from "@/components/product/ProductCard";
-import { products, categories } from "@/lib/products";
+import { categories } from "@/lib/products";
+import { useStorefrontProducts } from "@/lib/storefrontStore";
 
 const sortOptions = [
   { value: "featured", label: "Featured" },
@@ -26,6 +27,7 @@ const occasionOptions = ["Birthday", "Anniversary", "Valentine's Day", "Mother's
 
 function ShopContent() {
   const searchParams = useSearchParams();
+  const products = useStorefrontProducts();
   const initialCategory = searchParams.get("category") || "All";
   const initialOccasion = searchParams.get("occasion") || "";
 

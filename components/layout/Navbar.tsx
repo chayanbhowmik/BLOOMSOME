@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Search, ShoppingBag, Heart, Menu, User, X, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import SearchModal from "@/components/search/SearchModal";
+import { useCommerce } from "@/lib/storefrontStore";
 
 const navLinks = [
   { label: "Shop", href: "/shop" },
@@ -29,6 +30,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { cartCount } = useCommerce();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -115,8 +117,8 @@ export default function Navbar() {
             aria-label="Shopping bag"
           >
             <ShoppingBag size={19} strokeWidth={1.6} />
-            <span className="flex items-center justify-center w-[17px] h-[17px] bg-yellow rounded-full text-[10px] font-semibold text-ink">
-              0
+              <span className="flex items-center justify-center w-[17px] h-[17px] bg-yellow rounded-full text-[10px] font-semibold text-ink">
+              {cartCount}
             </span>
           </Link>
 

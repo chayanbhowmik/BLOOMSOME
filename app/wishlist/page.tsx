@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Heart, ArrowRight, ShoppingBag } from "lucide-react";
-import { products } from "@/lib/products";
 import ProductCard from "@/components/product/ProductCard";
+import { useCommerce, useStorefrontProducts } from "@/lib/storefrontStore";
 
 export default function WishlistPage() {
-  const [wishlistItems, setWishlistItems] = useState(products.slice(0, 3));
+  const products = useStorefrontProducts();
+  const { wishlist } = useCommerce();
+  const wishlistItems = products.filter((product) => wishlist.includes(product.id));
 
   return (
     <main className="min-h-screen bg-cream">

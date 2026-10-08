@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -24,14 +25,14 @@ import {
 } from "lucide-react";
 import { useAdminAuth } from "@/lib/adminAuth";
 import { useAdminStore } from "@/lib/adminStore";
-import AdminOverview from "./AdminOverview";
-import AdminOrders from "./AdminOrders";
-import AdminProducts from "./AdminProducts";
-import AdminCustomers from "./AdminCustomers";
-import AdminReviews from "./AdminReviews";
-import AdminCoupons from "./AdminCoupons";
-import AdminHomepage from "./AdminHomepage";
-import AdminCMS from "./AdminCMS";
+const AdminOverview = dynamic(() => import("./AdminOverview"));
+const AdminOrders = dynamic(() => import("./AdminOrders"));
+const AdminProducts = dynamic(() => import("./AdminProducts"));
+const AdminCustomers = dynamic(() => import("./AdminCustomers"));
+const AdminReviews = dynamic(() => import("./AdminReviews"));
+const AdminCoupons = dynamic(() => import("./AdminCoupons"));
+const AdminHomepage = dynamic(() => import("./AdminHomepage"));
+const AdminCMS = dynamic(() => import("./AdminCMS"));
 
 export default function AdminDashboard() {
   const { user, logout, changePassword, login, resetPassword, isAuthenticated, isLoading, authError } = useAdminAuth();
@@ -77,10 +78,10 @@ export default function AdminDashboard() {
   if (!isAuthenticated || !user) return <AdminLogin onLogin={login} onResetPassword={resetPassword} authError={authError} />;
 
   return (
-    <div className="min-h-screen bg-cream text-ink flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#eef0e7] text-ink flex flex-col lg:flex-row">
       
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex w-64 xl:w-72 bg-ink text-cream p-6 flex-col justify-between shrink-0 min-h-screen sticky top-0 border-r border-white/10">
+      <aside className="hidden lg:flex w-64 xl:w-72 bg-[#1f2822] text-cream p-5 flex-col justify-between shrink-0 min-h-screen sticky top-0 border-r border-black/10">
         <div>
           {/* Brand Logo */}
           <div className="pb-6 border-b border-white/10">
@@ -93,14 +94,14 @@ export default function AdminDashboard() {
                 className="h-9 w-auto object-contain brightness-0 invert"
               />
             </Link>
-            <div className="flex items-center gap-1.5 mt-2 text-[10px] font-mono text-cream/70 uppercase">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Admin Atelier</span>
+            <div className="flex items-center justify-between mt-3 text-[10px] font-mono text-cream/60 uppercase tracking-wider">
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />Live operations</span>
+              <span>v1.0</span>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="mt-6 space-y-1">
+          <nav className="mt-7 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -110,7 +111,7 @@ export default function AdminDashboard() {
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-mono transition-colors ${
                     isActive
-                      ? "bg-cream text-ink font-bold shadow-xs"
+                      ? "bg-[#eef0e7] text-ink font-bold shadow-sm"
                       : "text-cream/80 hover:bg-white/10 hover:text-cream"
                   }`}
                 >
@@ -227,7 +228,12 @@ export default function AdminDashboard() {
       )}
 
       {/* Main Admin View Content */}
-      <main className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full">
+      <main className="flex-1 max-w-[1600px] mx-auto w-full">
+        <div className="hidden lg:flex h-[74px] items-center justify-between border-b border-[#d9ddd0] px-8 xl:px-10 bg-[#f7f7ef]/80 backdrop-blur-sm">
+          <div><p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted">Workspace / {activeTab}</p><p className="text-sm font-medium text-ink mt-1">Good to see you, {user?.name?.split(" ")[0] || "Admin"}</p></div>
+          <span className="inline-flex items-center gap-2 text-[11px] font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Store systems operational</span>
+        </div>
+        <div className="p-5 sm:p-8 xl:p-10">
         {activeTab === "overview" && <AdminOverview onNavigateTab={(tab) => setActiveTab(tab)} />}
         {activeTab === "orders" && <AdminOrders />}
         {activeTab === "products" && <AdminProducts />}
@@ -358,6 +364,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+        </div>
       </main>
 
     </div>

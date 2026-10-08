@@ -158,29 +158,30 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-7 animate-in fade-in duration-300">
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl sm:text-3xl font-light text-ink tracking-tight">
-            Product Catalog & Inventory ({products.length})
+          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-muted mb-2"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Catalog operations</div>
+          <h1 className="font-display text-3xl sm:text-4xl font-light text-ink tracking-tight">
+            Products <span className="italic font-serif">& inventory</span>
           </h1>
           <p className="text-xs sm:text-sm text-muted">
             Add handmade stem designs, manage stock levels, set sale discounts, and adjust tags.
           </p>
         </div>
-        <button
+        <div className="flex items-center gap-3 self-start sm:self-auto"><span className="hidden sm:inline-flex items-center gap-2 text-[11px] font-mono text-muted bg-paper border border-line px-3 py-2.5 rounded-xl"><span className="font-semibold text-ink">{products.length}</span> live SKUs</span><button
           onClick={handleOpenAdd}
-          className="inline-flex items-center gap-2 bg-ink text-cream px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider hover:bg-ink/90 transition-colors shadow-sm self-start sm:self-auto"
+          className="inline-flex items-center gap-2 bg-ink text-cream px-5 py-2.5 rounded-xl text-xs font-mono uppercase tracking-wider hover:bg-ink/90 transition-colors shadow-sm"
         >
           <Plus size={15} />
           Add New Product
-        </button>
+        </button></div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-paper border border-line rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-[#1f2822] border border-[#1f2822] rounded-2xl p-4 sm:p-5 shadow-lg space-y-4">
         <div className="flex flex-col md:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" size={16} />
@@ -189,13 +190,13 @@ export default function AdminProducts() {
               placeholder="Search products by title, category, tag, or SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-cream border border-line rounded-xl py-2.5 pl-10 pr-4 text-xs sm:text-sm text-ink focus:outline-none focus:border-ink"
+              className="w-full bg-white/10 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs sm:text-sm text-cream placeholder:text-cream/45 focus:outline-none focus:border-cream/40"
             />
           </div>
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="text-xs font-mono uppercase text-muted hover:text-ink shrink-0"
+              className="text-xs font-mono uppercase text-cream/60 hover:text-cream shrink-0"
             >
               Clear
             </button>
@@ -212,8 +213,8 @@ export default function AdminProducts() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-mono whitespace-nowrap transition-all ${
                   isSelected
-                    ? "bg-ink text-cream font-medium"
-                    : "bg-cream border border-line text-muted hover:text-ink hover:border-ink/40"
+                    ? "bg-cream text-ink font-medium"
+                    : "bg-white/10 border border-white/10 text-cream/65 hover:text-cream hover:border-white/30"
                 }`}
               >
                 {cat}
